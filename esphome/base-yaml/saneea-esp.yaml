@@ -1,0 +1,46 @@
+substitutions:
+  name: saneea-esp-node-base
+  friendly_name: Saneea Esp Node Base
+  wifi_ap_ssid: ${name} Fallback
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  #  board: nodemcu-32s
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+web_server:
+  port: 80
+  include_internal: true
+  local: true
+  version: 3
+
+wifi:
+  # you can skip setting wifi name and pass because you can provide it via wifi.ap and captive_portal
+  #  ssid: "your wifi name"
+  #  password: "your-wifi-name-pass"
+
+  # access point: enable fallback hotspot in case wifi connection fails
+  ap:
+    ssid: ${wifi_ap_ssid}
+    password: !secret wifi_ap_password
+
+# Enable captive portal in order to set Wifi name/password
+captive_portal:
+
+# update firmware over-the-air (over wifi)
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+# Enable logging
+logger:
