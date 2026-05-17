@@ -40,7 +40,7 @@ esphome --version
 ls /dev/tty* -al | grep USB
 ```
 
-обычно девайс по usb называется /dev/ttyUSB0, но вроде может и /dev/ttyACM0
+обычно девайс по usb называется `/dev/ttyUSB0`, или `/dev/ttyACM0`
 
 ## прошить девайс через USB
 
