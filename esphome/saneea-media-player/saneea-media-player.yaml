@@ -1,0 +1,109 @@
+substitutions:
+  name: saneea-media-player
+  friendly_name: Saneea Media Player
+  wifi_ap_ssid: ${name} Fallback
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+    version: recommended
+
+web_server:
+  port: 80
+  include_internal: true
+  local: true
+  version: 3
+
+wifi:
+  # you can skip setting wifi name and pass because you can provide it via wifi.ap and captive_portal
+  #  ssid: "your wifi name"
+  #  password: "your-wifi-name-pass"
+
+  # access point: enable fallback hotspot in case wifi connection fails
+  ap:
+    ssid: ${wifi_ap_ssid}
+    password: !secret wifi_ap_password
+
+# Enable captive portal in order to set Wifi name/password
+captive_portal:
+
+# update firmware over-the-air (over wifi)
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+# Enable logging
+logger:
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: status_light
+    name: "RGB LED"
+    pin: GPIO48
+    num_leds: 1
+    chipset: WS2812
+    rgb_order: GRB
+    default_transition_length: 0s
+    effects:
+      - pulse:
+          name: "pulse"
+      - strobe:
+          name: "strobe"
+      - random:
+          name: "random"
+
+i2s_audio:
+  - id: i2s_audio_bus
+    i2s_lrclk_pin: GPIO11
+    i2s_bclk_pin: GPIO12
+
+speaker:
+  - platform: i2s_audio
+    id: echo_speaker
+    i2s_audio_id: i2s_audio_bus
+    dac_type: external
+    i2s_dout_pin: GPIO13
+    bits_per_sample: 16bit
+    sample_rate: 48000
+    channel: mono
+    buffer_duration: 200ms
+
+media_player:
+  - platform: speaker
+    name: "ESP32 Media Player"
+    id: echo_media_player
+
+    announcement_pipeline:
+      speaker: echo_speaker
+      format: WAV
+
+    codec_support_enabled: true
+
+    buffer_size: 32768
+
+    on_play:
+      then:
+        - logger.log: "on_play"
+        - light.turn_on:
+            id: status_light
+            effect: "pulse"
+    on_announcement:
+      then:
+        - logger.log: "on_announcement"
+        - light.turn_on:
+            id: status_light
+            effect: "pulse"
+    on_idle:
+      then:
+        - logger.log: "on idle"
+        - light.turn_off: status_light
